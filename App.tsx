@@ -1,16 +1,19 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Viewer3D } from './components/Viewer3D';
 import { Overlay } from './components/Overlay';
 import { ViewMode, Artwork, WallType } from './types';
 
 const App: React.FC = () => {
   const [viewMode, setViewMode] = useState<ViewMode>(ViewMode.ISO);
-  // 'back' shows the default view (hides front wall). 'front' hides back wall to see the front.
-  const [focusedWall, setFocusedWall] = useState<'back' | 'front'>('back');
+  // 'back' shows the default view (hides front wall). 'front' hides back wall. 'right' hides left wall.
+  const [focusedWall, setFocusedWall] = useState<'back' | 'front' | 'right'>('back');
   
   // State for Artworks
   const [artworks, setArtworks] = useState<Artwork[]>([]);
   const [selectedArtworkId, setSelectedArtworkId] = useState<string | null>(null);
+
+  // Reference for screenshot function
+  const screenshotHandleRef = useRef<(() => void) | null>(null);
 
   const handleAddArtwork = (file: File) => {
     const url = URL.createObjectURL(file);
@@ -18,8 +21,8 @@ const App: React.FC = () => {
       id: crypto.randomUUID(),
       title: 'Nova Obra',
       imageUrl: url,
-      // Default to the currently focused wall
-      wall: focusedWall,
+      // Default to the currently focused wall, or 'back' if it's 'left' (which isn't selectable yet)
+      wall: focusedWall as WallType, 
       position: [0, 1.75], // Centered, eye level
       dimensions: [1.5, 1.0]
     };
@@ -38,6 +41,12 @@ const App: React.FC = () => {
     if (selectedArtworkId === id) setSelectedArtworkId(null);
   };
 
+  const handleTakeScreenshot = () => {
+    if (screenshotHandleRef.current) {
+      screenshotHandleRef.current();
+    }
+  };
+
   return (
     <div className="relative w-full h-screen bg-gray-50 flex flex-col">
       {/* Main 3D Viewport */}
@@ -50,6 +59,7 @@ const App: React.FC = () => {
           selectedArtworkId={selectedArtworkId}
           onSelectArtwork={setSelectedArtworkId}
           focusedWall={focusedWall}
+          screenshotHandle={screenshotHandleRef}
         />
       </div>
 
@@ -65,6 +75,7 @@ const App: React.FC = () => {
         onUpdateArtwork={handleUpdateArtwork}
         onDeleteArtwork={handleDeleteArtwork}
         onSelectArtwork={setSelectedArtworkId}
+        onTakeScreenshot={handleTakeScreenshot}
       />
     </div>
   );

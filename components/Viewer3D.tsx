@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { Canvas } from '@react-three/fiber';
+import { Canvas, useThree } from '@react-three/fiber';
 import { OrbitControls, PerspectiveCamera, Environment, Grid, GizmoHelper, GizmoViewport } from '@react-three/drei';
 import { Room } from './Room';
 import { ViewMode, Artwork } from '../types';
@@ -12,8 +12,32 @@ interface Viewer3DProps {
   artworks: Artwork[];
   selectedArtworkId: string | null;
   onSelectArtwork: (id: string | null) => void;
-  focusedWall: 'back' | 'front';
+  focusedWall: 'back' | 'front' | 'right';
+  screenshotHandle: React.MutableRefObject<(() => void) | null>;
 }
+
+// Helper component to access GL context and expose screenshot function
+const ScreenshotManager = ({ handle }: { handle: React.MutableRefObject<(() => void) | null> }) => {
+  const { gl, scene, camera } = useThree();
+
+  useEffect(() => {
+    handle.current = () => {
+      // Render immediately to ensure latest state
+      gl.render(scene, camera);
+      const dataUrl = gl.domElement.toDataURL('image/png');
+      
+      const link = document.createElement('a');
+      link.setAttribute('download', 'exposicao-virtual.png');
+      link.setAttribute('href', dataUrl.replace('image/png', 'image/octet-stream'));
+      link.click();
+    };
+    return () => {
+      handle.current = null;
+    };
+  }, [gl, scene, camera, handle]);
+
+  return null;
+};
 
 export const Viewer3D: React.FC<Viewer3DProps> = ({ 
   viewMode, 
@@ -22,7 +46,8 @@ export const Viewer3D: React.FC<Viewer3DProps> = ({
   artworks,
   selectedArtworkId,
   onSelectArtwork,
-  focusedWall
+  focusedWall,
+  screenshotHandle
 }) => {
   const controlsRef = useRef<any>(null);
 
@@ -38,16 +63,18 @@ export const Viewer3D: React.FC<Viewer3DProps> = ({
           controls.target.set(0, 0, 0);
           break;
         case ViewMode.FRONT:
-          // Front view (looking at Z)
+          // Front view logic depends on focused wall
           if (focusedWall === 'back') {
-            controls.object.position.set(0, 2, 12);
-          } else {
-            controls.object.position.set(0, 2, -12); // Look from behind for Front wall
+            controls.object.position.set(0, 2, 12); // Look at back wall (Z-)
+          } else if (focusedWall === 'front') {
+            controls.object.position.set(0, 2, -12); // Look at front wall (Z+)
+          } else if (focusedWall === 'right') {
+            controls.object.position.set(-12, 2, 0); // Look at right wall (X+) from left
           }
           controls.target.set(0, 1.75, 0);
           break;
         case ViewMode.SIDE:
-          // Side view (looking at X)
+          // Side view (looking at X) - Legacy, mostly handled by 'right' focus now but kept for compatibility
           controls.object.position.set(12, 2, 0);
           controls.target.set(0, 1.75, 0);
           break;
@@ -56,8 +83,10 @@ export const Viewer3D: React.FC<Viewer3DProps> = ({
           // Isometric-ish view
           if (focusedWall === 'back') {
              controls.object.position.set(10, 10, 10);
-          } else {
-             controls.object.position.set(-10, 10, -10); // Reverse iso for Front wall
+          } else if (focusedWall === 'front') {
+             controls.object.position.set(-10, 10, -10); 
+          } else if (focusedWall === 'right') {
+             controls.object.position.set(-10, 10, 10); // View from Front-Left
           }
           controls.target.set(0, 0, 0);
           break;
@@ -67,7 +96,13 @@ export const Viewer3D: React.FC<Viewer3DProps> = ({
   }, [viewMode, focusedWall]);
 
   return (
-    <Canvas shadows className="w-full h-full bg-white" onPointerMissed={() => onSelectArtwork(null)}>
+    <Canvas 
+      shadows 
+      className="w-full h-full bg-white" 
+      onPointerMissed={() => onSelectArtwork(null)}
+      gl={{ preserveDrawingBuffer: true }} // Important for screenshots
+    >
+      <ScreenshotManager handle={screenshotHandle} />
       <PerspectiveCamera makeDefault position={[10, 10, 10]} fov={45} />
       
       <OrbitControls 

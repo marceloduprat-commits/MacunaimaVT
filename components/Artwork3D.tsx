@@ -1,5 +1,5 @@
 import React, { useMemo, Suspense } from 'react';
-import { useTexture, Edges, Html } from '@react-three/drei';
+import { useTexture, Edges } from '@react-three/drei';
 import { useThree } from '@react-three/fiber';
 import { Artwork, DEFAULT_ROOM } from '../types';
 import * as THREE from 'three';
@@ -112,15 +112,6 @@ export const Artwork3D: React.FC<Artwork3DProps> = ({ artwork, isSelected, onSel
       }>
         <ArtworkImage url={artwork.imageUrl} dimensions={artwork.dimensions} />
       </Suspense>
-
-      {/* Label on Hover/Select */}
-      {isSelected && (
-        <Html position={[0, artwork.dimensions[1]/2 + 0.2, 0]} center transform rotation={[0, 0, 0]}>
-          <div className="bg-black/80 text-white px-2 py-1 rounded text-xs whitespace-nowrap backdrop-blur-sm pointer-events-none select-none">
-            {artwork.title}
-          </div>
-        </Html>
-      )}
     </group>
   );
 };

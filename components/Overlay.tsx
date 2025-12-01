@@ -12,20 +12,22 @@ import {
   Move,
   Check,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Download
 } from 'lucide-react';
 
 interface OverlayProps {
   viewMode: ViewMode;
   setViewMode: (mode: ViewMode) => void;
-  focusedWall: 'back' | 'front';
-  setFocusedWall: (wall: 'back' | 'front') => void;
+  focusedWall: 'back' | 'front' | 'right';
+  setFocusedWall: (wall: 'back' | 'front' | 'right') => void;
   artworks: Artwork[];
   selectedArtworkId: string | null;
   onAddArtwork: (file: File) => void;
   onUpdateArtwork: (id: string, updates: Partial<Artwork>) => void;
   onDeleteArtwork: (id: string) => void;
   onSelectArtwork: (id: string | null) => void;
+  onTakeScreenshot: () => void;
 }
 
 export const Overlay: React.FC<OverlayProps> = ({ 
@@ -38,7 +40,8 @@ export const Overlay: React.FC<OverlayProps> = ({
   onAddArtwork,
   onUpdateArtwork,
   onDeleteArtwork,
-  onSelectArtwork
+  onSelectArtwork,
+  onTakeScreenshot
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isCameraMenuOpen, setIsCameraMenuOpen] = useState(true);
@@ -79,6 +82,14 @@ export const Overlay: React.FC<OverlayProps> = ({
              >
                Frente (8m)
              </button>
+             <button
+                onClick={() => setFocusedWall('right')}
+                className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all ${
+                  focusedWall === 'right' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+                }`}
+             >
+               Porta (5m)
+             </button>
            </div>
         </div>
 
@@ -110,18 +121,6 @@ export const Overlay: React.FC<OverlayProps> = ({
               </button>
               
               <button 
-                onClick={() => setViewMode(ViewMode.TOP)}
-                className={`flex items-center justify-center gap-2 p-2 rounded-lg text-sm transition-colors ${
-                  viewMode === ViewMode.TOP 
-                  ? 'bg-blue-600 text-white shadow-sm' 
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                }`}
-              >
-                <LayoutTemplate className="w-4 h-4" />
-                Topo
-              </button>
-
-              <button 
                 onClick={() => setViewMode(ViewMode.FRONT)}
                 className={`flex items-center justify-center gap-2 p-2 rounded-lg text-sm transition-colors ${
                   viewMode === ViewMode.FRONT 
@@ -131,18 +130,6 @@ export const Overlay: React.FC<OverlayProps> = ({
               >
                 <ArrowUpFromLine className="w-4 h-4" />
                 Frente
-              </button>
-
-              <button 
-                onClick={() => setViewMode(ViewMode.SIDE)}
-                className={`flex items-center justify-center gap-2 p-2 rounded-lg text-sm transition-colors ${
-                  viewMode === ViewMode.SIDE 
-                  ? 'bg-blue-600 text-white shadow-sm' 
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                }`}
-              >
-                <Layers className="w-4 h-4" />
-                Lado
               </button>
             </div>
           )}
@@ -165,6 +152,17 @@ export const Overlay: React.FC<OverlayProps> = ({
             className="hidden" 
             onChange={handleFileChange}
          />
+      </div>
+
+      {/* Bottom Right - Screenshot Button */}
+      <div className="absolute bottom-4 right-4 z-10 pointer-events-auto">
+        <button
+          onClick={onTakeScreenshot}
+          className="flex items-center gap-2 bg-white text-gray-700 px-4 py-2 rounded-lg shadow-lg border border-gray-100 hover:bg-gray-50 transition-colors font-medium"
+        >
+          <Download className="w-5 h-5" />
+          Salvar Visualização
+        </button>
       </div>
 
       {/* Left Sidebar - Editor Panel */}
