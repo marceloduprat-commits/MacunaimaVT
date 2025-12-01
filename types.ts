@@ -63,35 +63,3 @@ declare global {
     }
   }
 }
-
-// Also augment 'react' module specifically for React 18+ / newer TS resolutions
-declare module 'react' {
-  namespace JSX {
-    interface IntrinsicElements {
-      ambientLight: any;
-      pointLight: any;
-      directionalLight: any;
-      spotLight: any;
-      hemisphereLight: any;
-      orthographicCamera: any;
-      perspectiveCamera: any;
-      mesh: any;
-      group: any;
-      position: any;
-      rotation: any;
-      scale: any;
-      boxGeometry: any;
-      planeGeometry: any;
-      sphereGeometry: any;
-      cylinderGeometry: any;
-      capsuleGeometry: any;
-      circleGeometry: any;
-      meshStandardMaterial: any;
-      meshBasicMaterial: any;
-      meshPhongMaterial: any;
-      primitive: any;
-      color: any;
-      [elemName: string]: any;
-    }
-  }
-}

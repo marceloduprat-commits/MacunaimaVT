@@ -166,15 +166,6 @@ export const Room: React.FC<RoomProps> = ({
         ) : null;
       })}
 
-      {/* Human Reference Scale (1.75m tall) */}
-      <group position={[2, 0.875, 1]}>
-        <mesh castShadow>
-            <capsuleGeometry args={[0.25, 1.25, 4, 8]} />
-            <meshStandardMaterial color="#fca5a5" />
-            <Edges color="#991b1b" />
-        </mesh>
-      </group>
-
     </group>
   );
 };
