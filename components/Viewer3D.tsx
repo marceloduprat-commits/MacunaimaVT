@@ -2,11 +2,10 @@ import React, { useEffect, useRef } from 'react';
 import { Canvas, useThree } from '@react-three/fiber';
 import { OrbitControls, PerspectiveCamera, Environment, Grid, GizmoHelper, GizmoViewport } from '@react-three/drei';
 import { Room } from './Room';
-import { ViewMode, Artwork } from '../types';
+import { Artwork } from '../types';
 import * as THREE from 'three';
 
 interface Viewer3DProps {
-  viewMode: ViewMode;
   showDimensions: boolean;
   wallTransparency: boolean;
   artworks: Artwork[];
@@ -40,7 +39,6 @@ const ScreenshotManager = ({ handle }: { handle: React.MutableRefObject<(() => v
 };
 
 export const Viewer3D: React.FC<Viewer3DProps> = ({ 
-  viewMode, 
   showDimensions, 
   wallTransparency,
   artworks,
@@ -51,49 +49,29 @@ export const Viewer3D: React.FC<Viewer3DProps> = ({
 }) => {
   const controlsRef = useRef<any>(null);
 
-  // Handle View Mode changes by animating camera position
+  // Handle Wall Focus changes by animating camera to position
   useEffect(() => {
     if (controlsRef.current) {
       const controls = controlsRef.current;
       
-      switch (viewMode) {
-        case ViewMode.TOP:
-          // Top down view
-          controls.object.position.set(0, 12, 0);
-          controls.target.set(0, 0, 0);
-          break;
-        case ViewMode.FRONT:
-          // Front view logic depends on focused wall
-          if (focusedWall === 'back') {
-            controls.object.position.set(0, 2, 12); // Look at back wall (Z-)
-          } else if (focusedWall === 'front') {
-            controls.object.position.set(0, 2, -12); // Look at front wall (Z+)
-          } else if (focusedWall === 'right') {
-            controls.object.position.set(-12, 2, 0); // Look at right wall (X+) from left
-          }
-          controls.target.set(0, 1.75, 0);
-          break;
-        case ViewMode.SIDE:
-          // Side view (looking at X) - Legacy, mostly handled by 'right' focus now but kept for compatibility
-          controls.object.position.set(12, 2, 0);
-          controls.target.set(0, 1.75, 0);
-          break;
-        case ViewMode.ISO:
-        default:
-          // Isometric-ish view
-          if (focusedWall === 'back') {
-             controls.object.position.set(10, 10, 10);
-          } else if (focusedWall === 'front') {
-             controls.object.position.set(-10, 10, -10); 
-          } else if (focusedWall === 'right') {
-             controls.object.position.set(-10, 10, 10); // View from Front-Left
-          }
-          controls.target.set(0, 0, 0);
-          break;
+      // Default behavior: When wall changes, snap to "Front View" of that wall
+      // The user can then orbit (ISO) freely from there.
+      
+      if (focusedWall === 'back') {
+        // Look at Back Wall (Z-)
+        controls.object.position.set(0, 2, 12); 
+      } else if (focusedWall === 'front') {
+        // Look at Front Wall (Z+)
+        controls.object.position.set(0, 2, -12); 
+      } else if (focusedWall === 'right') {
+        // Look at Right Wall (X+) from Left
+        controls.object.position.set(-12, 2, 0); 
       }
+      
+      controls.target.set(0, 1.75, 0);
       controls.update();
     }
-  }, [viewMode, focusedWall]);
+  }, [focusedWall]);
 
   return (
     <Canvas 
