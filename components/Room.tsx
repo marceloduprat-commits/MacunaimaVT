@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { DEFAULT_ROOM, Artwork } from '../types';
 import { Artwork3D } from './Artwork3D';
+import { HumanScale } from './HumanScale';
 import * as THREE from 'three';
 
 interface RoomProps {
@@ -68,6 +69,40 @@ export const Room: React.FC<RoomProps> = ({
   const showFrontWall = focusedWall !== 'back';
   const showLeftWall = focusedWall !== 'right';
   const showRightWall = true; // Always visible for now
+
+  // Logic to position the Human Reference Scale
+  const humanReference = useMemo(() => {
+    // Only show if an artwork is selected (editing mode)
+    if (!selectedArtworkId) return null;
+
+    // Aumentado offset para 0.06 (6cm) para evitar z-fighting/clipping visual
+    const offsetFromWall = thickness / 2 + 0.06;
+    
+    switch (focusedWall) {
+      case 'back':
+        return (
+          <group position={[1.5, 0, -depth / 2 + offsetFromWall]}>
+            <HumanScale />
+          </group>
+        );
+      case 'front':
+        return (
+          <group position={[-1.5, 0, depth / 2 - offsetFromWall]} rotation={[0, Math.PI, 0]}>
+            <HumanScale />
+          </group>
+        );
+      case 'right':
+         // For the 5m wall, position slightly off center
+        return (
+          <group position={[width / 2 - offsetFromWall, 0, 1.0]} rotation={[0, -Math.PI / 2, 0]}>
+            <HumanScale />
+          </group>
+        );
+      default:
+        return null;
+    }
+  }, [selectedArtworkId, focusedWall, depth, width, thickness]);
+
 
   return (
     <group position={[0, 0, 0]}>
@@ -165,6 +200,9 @@ export const Room: React.FC<RoomProps> = ({
           />
         ) : null;
       })}
+
+      {/* --- HUMAN SCALE REFERENCE --- */}
+      {humanReference}
 
     </group>
   );
