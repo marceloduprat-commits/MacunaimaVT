@@ -158,24 +158,32 @@ export const Room: React.FC<RoomProps> = ({
         </group>
       )}
 
-      {/* Right Wall (X = width/2) - With Door 2.10x0.80 center */}
+      {/* Right Wall (X = width/2) - With Door shifted to Left */}
       {showRightWall && (
         <group position={[width / 2, 0, 0]} rotation={[0, Math.PI / 2, 0]}>
-           {/* Door Dimensions */}
-           {/* Left Side (looking at wall from inside) */}
-           <mesh position={[-1.45, 1.75, 0]} castShadow receiveShadow>
-              <boxGeometry args={[2.1, 3.5, thickness]} />
+           {/* Wall Geometry: 5m total. 
+               Desired: 2.6m on Left side (Back of room). 
+               Door: 0.8m width.
+               Remaining on Right side: 5 - 2.6 - 0.8 = 1.6m (Front of room).
+           */}
+
+           {/* Left Side Panel (2.6m wide) */}
+           {/* Center is at start (-2.5) + half width (1.3) = -1.2 */}
+           <mesh position={[-1.2, 1.75, 0]} castShadow receiveShadow>
+              <boxGeometry args={[2.6, 3.5, thickness]} />
               <primitive object={sideWallMaterial} />
            </mesh>
 
-           {/* Right Side */}
-           <mesh position={[1.45, 1.75, 0]} castShadow receiveShadow>
-              <boxGeometry args={[2.1, 3.5, thickness]} />
+           {/* Right Side Panel (1.6m wide) */}
+           {/* Center is at end (2.5) - half width (0.8) = 1.7 */}
+           <mesh position={[1.7, 1.75, 0]} castShadow receiveShadow>
+              <boxGeometry args={[1.6, 3.5, thickness]} />
               <primitive object={sideWallMaterial} />
            </mesh>
 
-           {/* Header (Above Door) */}
-           <mesh position={[0, 2.8, 0]} castShadow receiveShadow>
+           {/* Header (Above Door, 0.8m wide) */}
+           {/* Center is between -1.2 (left center) and 1.7 (right center) -> around 0.5 */}
+           <mesh position={[0.5, 2.8, 0]} castShadow receiveShadow>
               <boxGeometry args={[0.8, 1.4, thickness]} />
               <primitive object={sideWallMaterial} />
            </mesh>
